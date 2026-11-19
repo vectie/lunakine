@@ -1,0 +1,11 @@
+import {
+  "vectie/lunakine/actor",
+  "vectie/lunakine/onnx",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/async/fs",
+  "moonbitlang/async",
+}
+
+pkgtype(kind: "executable")

@@ -1,0 +1,20 @@
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/async@0.20.2",
+  "moonbitlang/async@0.20.2/fs",
+  "moonbitlang/async@0.20.2/process",
+}
+
+///|
+async fn main {
+  let args = @env.args()
+  guard args.length() == 2 else { fail("usage: test_ascend_abi.mbtx LUNAKINE_ROOT") }
+  let root = args[1]
+  if !@fs.exists(root + "/target") { @fs.mkdir(root + "/target", recursive=true) }
+  let library = root + "/target/liblunakine_test_ascendcl.so"
+  let code = @process.run("cc", ["-shared", "-fPIC", "-Wall", "-Wextra", root + "/tests/fake_ascendcl.c", "-o", library])
+  guard code == 0 else { fail("native ABI fixture build failed") }
+  let result = @process.run("moon", ["test", "--target", "native", "ascend"],
+    cwd=root, extra_env={ "LUNAKINE_TEST_ASCENDCL": library })
+  guard result == 0 else { fail("software AscendCL ABI checks failed") }
+}

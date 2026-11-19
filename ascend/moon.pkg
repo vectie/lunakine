@@ -1,0 +1,16 @@
+import {
+  "vectie/lunakine/actor",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/debug",
+}
+
+import {
+  "moonbitlang/core/env",
+} for "test"
+
+options(
+  "native-stub": [ "ascend.c" ],
+  link: { "native": { "cc-link-flags": "-ldl" } },
+)
+
+supported_targets = "native"

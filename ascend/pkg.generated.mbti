@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/lunakine/ascend"
+
+import {
+  "moonbitlang/core/debug",
+  "vectie/lunakine/actor",
+}
+
+// Values
+
+// Errors
+pub suberror AscendError {
+  ExecutionError(String)
+} derive(@debug.Debug)
+pub fn AscendError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+pub struct Runtime {
+  // private fields
+}
+pub fn Runtime::close(Self) -> Unit raise AscendError
+pub fn Runtime::open(String) -> Self raise AscendError
+pub fn Runtime::prepare(Self, String, @actor.Spec, device? : Int) -> Session raise
+
+pub struct Session {
+  // private fields
+}
+pub fn Session::close(Self) -> Unit raise AscendError
+pub fn Session::run_into(Self, FixedArray[Float], FixedArray[Float], FixedArray[Float]) -> Unit raise AscendError
+
+// Type aliases
+
+// Traits

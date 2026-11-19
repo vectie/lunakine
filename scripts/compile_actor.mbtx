@@ -1,0 +1,42 @@
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/async@0.20.2",
+  "moonbitlang/async@0.20.2/fs",
+  "moonbitlang/async@0.20.2/process",
+}
+
+///|
+struct Shape {
+  history_frames : Int
+  observation_width : Int
+  encoder : Array[Int]
+} derive(FromJson)
+
+///|
+async fn main {
+  let args = @env.args()
+  guard args.length() == 5 || args.length() == 6 else {
+    fail("usage: compile_actor.mbtx BUNDLE SOC_VERSION OUTPUT_PREFIX PRECISION_MODE [--dry-run]")
+  }
+  let spec : Shape = @json.from_json(@json.parse(@utf8.decode(@fs.read_file(args[1] + "/actor.json").binary())))
+  guard spec.encoder.length() >= 2 && spec.history_frames > 0 && spec.observation_width > 0 else {
+    fail("invalid actor input shape")
+  }
+  let options = [
+    "--framework=5", "--model=" + args[1] + "/actor.onnx", "--output=" + args[3],
+    "--soc_version=" + args[2], "--input_format=ND",
+    "--input_shape=history:1,\{spec.history_frames},\{spec.observation_width};goals:1,\{spec.encoder[0]}",
+    "--output_type=FP32", "--precision_mode=" + args[4],
+  ]
+  let command : Json = { "program": "atc", "arguments": Json(options) }
+  println(command.stringify())
+  if args.length() == 6 {
+    guard args[5] == "--dry-run" else { fail("unknown compile option") }
+    return
+  }
+  guard !@fs.exists(args[3] + ".om") else { fail("compiled model output already exists") }
+  let code = @process.run("atc", options)
+  guard code == 0 && @fs.exists(args[3] + ".om") else { fail("ATC compilation did not produce the model") }
+}

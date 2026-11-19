@@ -1,0 +1,13 @@
+import {
+  "vectie/lunakine/actor",
+  "vectie/lunakine/ascend",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "native"

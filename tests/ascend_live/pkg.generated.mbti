@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/lunakine/tests/ascend_live"
+
+import {
+  "moonbitlang/core/json",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+type Fixture derive(@json.FromJson)
+pub fn Fixture::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+
+type Sample derive(@json.FromJson)
+pub fn Sample::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+
+// Type aliases
+
+// Traits

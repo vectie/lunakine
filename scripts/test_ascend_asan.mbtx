@@ -1,0 +1,48 @@
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/async@0.20.2",
+  "moonbitlang/async@0.20.2/fs",
+  "moonbitlang/async@0.20.2/process",
+}
+
+///|
+// Instruments the native binding without replacing the shared MoonBit toolchain
+// runtime object. On macOS mimalloc remains enabled, so this is an ASan smoke
+// check, complemented by the fixture's explicit native-resource accounting.
+async fn main {
+  let args = @env.args()
+  guard args.length() == 2 else { fail("usage: test_ascend_asan.mbtx LUNAKINE_ROOT") }
+  let root = args[1]
+  let actor_path = root + "/actor/moon.pkg"
+  let ascend_path = root + "/ascend/moon.pkg"
+  let actor = @fs.read_file(actor_path).binary()
+  let ascend = @fs.read_file(ascend_path).binary()
+  let flags =
+    #|options(link: { "native": {
+    #|  "cc-flags": "-g -fsanitize=address -fno-omit-frame-pointer",
+    #|  "stub-cc-flags": "-g -fsanitize=address -fno-omit-frame-pointer",
+    #|  "cc-link-flags": "-fsanitize=address -ldl",
+    #|} })
+  errdefer {
+    @fs.write_file(actor_path, actor)
+    @fs.write_file(ascend_path, ascend)
+  }
+  let result = {
+    @fs.write_file(actor_path, @utf8.encode(@utf8.decode(actor) + "\n" + flags))
+    let patched = @utf8.decode(ascend).replace(
+      old="\"cc-link-flags\": \"-ldl\"",
+      new="\"cc-link-flags\": \"-fsanitize=address -ldl\", \"cc-flags\": \"-g -fsanitize=address -fno-omit-frame-pointer\", \"stub-cc-flags\": \"-g -fsanitize=address -fno-omit-frame-pointer\"")
+    @fs.write_file(ascend_path, @utf8.encode(patched))
+    let library = root + "/target/liblunakine_test_ascendcl_asan.so"
+    let build = @process.run("cc", ["-shared", "-fPIC", "-fsanitize=address", "-fno-omit-frame-pointer",
+      root + "/tests/fake_ascendcl.c", "-o", library])
+    guard build == 0 else { fail("ASan fixture build failed") }
+    @process.run("moon", ["test", "--target", "native", "--target-dir", root + "/target/asan", "actor", "ascend"],
+      cwd=root, extra_env={ "LUNAKINE_TEST_ASCENDCL": library, "ASAN_OPTIONS": "detect_leaks=0",
+        "MOON_CC": "/usr/bin/cc", "MOON_AR": "/usr/bin/ar" })
+  }
+  @fs.write_file(actor_path, actor)
+  @fs.write_file(ascend_path, ascend)
+  guard result == 0 else { fail("ASan smoke check failed") }
+}
