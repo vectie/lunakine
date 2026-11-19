@@ -1,0 +1,59 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "vectie/lunakine/actor"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn decode_parameters(Spec, BytesView) -> Array[Float] raise ActorError
+
+pub fn encode_parameters(ArrayView[Double]) -> Bytes raise ActorError
+
+pub fn finite(Double) -> Bool
+
+// Errors
+pub suberror ActorError {
+  InvalidActor(String)
+} derive(@debug.Debug)
+pub fn ActorError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+pub(all) struct Normalization {
+  mean : Array[Double]
+  variance : Array[Double]
+  epsilon : Double
+} derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn Normalization::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Normalization::to_json(Self) -> Json
+pub fn Normalization::to_repr(Self) -> @debug.Repr
+
+pub struct Reference {
+  // private fields
+}
+pub fn Reference::prepare(Spec, BytesView) -> Self raise ActorError
+pub fn Reference::run(Self, ArrayView[Double], ArrayView[Double]) -> Array[Double] raise ActorError
+
+pub(all) struct Spec {
+  format : String
+  history_frames : Int
+  observation_width : Int
+  encoder : Array[Int]
+  decoder : Array[Int]
+  observation_norm : Normalization
+  goal_norm : Normalization
+  action_mask : Array[Double]
+} derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn Spec::action_width(Self) -> Int
+pub fn Spec::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Spec::goal_width(Self) -> Int
+pub fn Spec::history_width(Self) -> Int
+pub fn Spec::parameter_count(Self) -> Int raise ActorError
+pub fn Spec::to_json(Self) -> Json
+pub fn Spec::to_repr(Self) -> @debug.Repr
+pub fn Spec::validate(Self) -> Unit raise ActorError
+
+// Type aliases
+
+// Traits
